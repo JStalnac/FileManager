@@ -109,5 +109,23 @@ namespace FileSystemManager
 
             DirectoryInfo.Delete();
         }
+
+        /// <summary>
+        /// Creates a file to this directory
+        /// </summary>
+        /// <param name="filename"></param>
+        public void AddFile(string filename) 
+        {
+            File.Create(DirectoryInfo.FullName + filename);
+        }
+
+        /// <summary>
+        /// Creates a subdirectory to this directory
+        /// </summary>
+        /// <param name="name"></param>
+        public void CreateSubdirectory(string name) 
+        {
+            DirectoryInfo.CreateSubdirectory(name);
+        }
     }
 }
