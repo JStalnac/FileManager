@@ -74,7 +74,9 @@ namespace FileSystemManager
         /// <returns></returns>
         public static ManagedDirectory GetRegistedDirectory(string name) 
         {
-            return RegisteredDirectories[name];
+            ManagedDirectory directory = RegisteredDirectories[name];
+            directory.Refresh();
+            return directory;
         }
     }
 }
