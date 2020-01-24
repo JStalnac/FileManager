@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections;
 
-namespace FileSystemManager
+namespace DirtBot.DataBase.FileManagement
 {
     public struct ManagedDirectory : IDisposable, IEnumerable
     {
@@ -61,7 +61,7 @@ namespace FileSystemManager
         }
 
         /// <summary>
-        /// Gets the index of a file in Files.
+        /// Gets the index of a file in Files. Returns -1 if no file is found
         /// </summary>
         /// <param name="filename">Filename to search for.</param>
         /// <returns></returns>
@@ -75,7 +75,7 @@ namespace FileSystemManager
                 }
             }
 
-            throw new FileNotFoundException($"No file named '{filename}'");
+            return -1;
         }
 
         /// <summary>
@@ -116,7 +116,10 @@ namespace FileSystemManager
         /// <param name="filename"></param>
         public void AddFile(string filename) 
         {
-            File.Create(DirectoryInfo.FullName + filename);
+            StreamWriter writer = new StreamWriter(DirectoryInfo.FullName + filename);
+            writer.Close();
+            // Refreshing is important! Without it the new file won't be found!
+            Refresh();
         }
 
         /// <summary>
