@@ -23,19 +23,28 @@ namespace DirtBot.DataBase.FileManagement
 
         public IEnumerator GetEnumerator()
         {
+            Refresh();
             return Files.GetEnumerator();
         }
         
         public ManagedFile this[int index] 
         {
             get => Files[index];
-            set => Files[index] = value;
+            set 
+            {
+                Files[index] = value;
+                Refresh();
+            }
         }
 
         public ManagedFile this[string filename] 
         {
             get => GetFile(filename);
-            set => Files[IndexOf(filename)] = value;
+            set 
+            {
+                Files[IndexOf(filename)] = value;
+                Refresh();
+            }
         }
 
         /// <summary>
