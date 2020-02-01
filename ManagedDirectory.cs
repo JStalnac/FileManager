@@ -153,7 +153,7 @@ namespace DirtBot.DataBase.FileManagement
         /// <param name="filename"></param>
         public void AddFile(string filename) 
         {
-            StreamWriter writer = new StreamWriter(DirectoryInfo.FullName + filename);
+            StreamWriter writer = new StreamWriter($"{DirectoryInfo.FullName}/{filename}");
             writer.Close();
             // Refreshing is important! Without it the new file won't be found!
             Refresh();
