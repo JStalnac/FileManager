@@ -87,7 +87,7 @@ namespace DirtBot.DataBase.FileManagement
                 }
             }
 
-            return new ManagedDirectory("", null, null);
+            return new ManagedDirectory(directoryName, null, null);
         }
 
         /// <summary>
