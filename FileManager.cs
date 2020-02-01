@@ -1,7 +1,7 @@
-﻿using System.IO;
+using System.IO;
 using System.Collections.Generic;
 
-namespace FileSystemManager
+namespace DirtBot.DataBase.FileManagement
 {
     public static class FileManager
     {
@@ -20,6 +20,7 @@ namespace FileSystemManager
             }
 
             List<ManagedFile> files = new List<ManagedFile>();
+            List<ManagedDirectory> directories = new List<ManagedDirectory>();
 
             foreach (string filename in Directory.EnumerateFiles(path))
             {
@@ -27,7 +28,13 @@ namespace FileSystemManager
                 files.Add(managedFile);
             }
 
-            return new ManagedDirectory(path, files.ToArray());
+            foreach (string directoryName in Directory.EnumerateDirectories(path))
+            {
+                ManagedDirectory directory = LoadDirectory(directoryName);
+                directories.Add(directory);
+            }
+
+            return new ManagedDirectory(path, files.ToArray(), directories.ToArray());
         }
 
         /// <summary>
@@ -52,7 +59,7 @@ namespace FileSystemManager
         /// </summary>
         /// <param name="directory">The directory that will be registered</param>
         /// <returns></returns>
-        public static void RegisterDirectory(ManagedDirectory directory) 
+        public static void RegisterDirectory(ManagedDirectory directory)
         {
             RegisterDirectory(directory.DirectoryInfo.Name, directory);
         }
@@ -62,7 +69,7 @@ namespace FileSystemManager
         /// <param name="name">The name that the directory will be accessed with.</param>
         /// <param name="directory">The directory that will be registered</param>
         /// <returns></returns>
-        public static void RegisterDirectory(string name, ManagedDirectory directory) 
+        public static void RegisterDirectory(string name, ManagedDirectory directory)
         {
             RegisteredDirectories.Add(name, directory);
         }
@@ -72,7 +79,7 @@ namespace FileSystemManager
         /// </summary>
         /// <param name="name">Name to search for.</param>
         /// <returns></returns>
-        public static ManagedDirectory GetRegistedDirectory(string name) 
+        public static ManagedDirectory GetRegistedDirectory(string name)
         {
             ManagedDirectory directory = RegisteredDirectories[name];
             directory.Refresh();
