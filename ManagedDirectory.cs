@@ -8,11 +8,13 @@ namespace DirtBot.DataBase.FileManagement
     {
         public DirectoryInfo DirectoryInfo { get; private set; }
         public ManagedFile[] Files { get; private set; }
+        public ManagedDirectory[] Directories { get; private set; }
 
-        public ManagedDirectory(string path, ManagedFile[] files)
+        public ManagedDirectory(string path, ManagedFile[] files, ManagedDirectory[] directories)
         {
             DirectoryInfo = new DirectoryInfo(path);
             Files = files;
+            Directories = directories;
         }
 
         public void Dispose()
@@ -70,6 +72,25 @@ namespace DirtBot.DataBase.FileManagement
         }
 
         /// <summary>
+        /// Gets a subdirectory by name
+        /// </summary>
+        /// <param name="directoryName">Name of the subdirectory.</param>
+        /// <returns></returns>
+        public ManagedDirectory GetDirectory(string directoryName) 
+        {
+            //return new ManagedDirectory(null, null, null);
+            foreach (ManagedDirectory directory in Directories)
+            {
+                if (directory.DirectoryInfo.Name == directoryName || directory.DirectoryInfo.FullName == directoryName) 
+                {
+                    return directory;
+                }
+            }
+
+            return new ManagedDirectory(directoryName, null, null);
+        }
+
+        /// <summary>
         /// Gets the index of a file in Files. Returns -1 if no file is found
         /// </summary>
         /// <param name="filename">Filename to search for.</param>
@@ -111,9 +132,16 @@ namespace DirtBot.DataBase.FileManagement
         /// </summary>
         public void DeleteDirectory() 
         {
+            Refresh();
+
             foreach (ManagedFile file in Files)
             {
                 DeleteFile(file.FullName);
+            }
+
+            foreach (ManagedDirectory subDirectory in Directories)
+            {
+                subDirectory.DeleteDirectory();
             }
 
             DirectoryInfo.Delete();
