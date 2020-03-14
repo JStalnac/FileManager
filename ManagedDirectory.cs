@@ -1,10 +1,11 @@
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.IO;
-using System.Collections;
+using System.Runtime.InteropServices;
 
-namespace DirtBot.DataBase.FileManagement
+namespace DirtBot.Database.FileManagement
 {
-    public struct ManagedDirectory : IDisposable, IEnumerable
+    public class ManagedDirectory : IDisposable
     {
         public DirectoryInfo DirectoryInfo { get; private set; }
         public ManagedFile[] Files { get; private set; }
@@ -17,50 +18,42 @@ namespace DirtBot.DataBase.FileManagement
             Directories = directories;
         }
 
+        #region IDisposable
+        bool disposed = false;
+        SafeHandle handle = new SafeFileHandle(IntPtr.Zero, true);
+
         public void Dispose()
         {
-            Files = null;
-            DirectoryInfo = null;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
 
-        public IEnumerator GetEnumerator()
-        {
-            Refresh();
-            return Files.GetEnumerator();
-        }
-        
-        public ManagedFile this[int index] 
-        {
-            get => Files[index];
-            set 
+            if (disposing)
             {
-                Files[index] = value;
-                Refresh();
+                handle.Dispose();
+                // TODO: Dispose everything else...
             }
-        }
 
-        public ManagedFile this[string filename] 
-        {
-            get => GetFile(filename);
-            set 
-            {
-                Files[IndexOf(filename)] = value;
-                Refresh();
-            }
+            disposed = true;
         }
+        #endregion
 
         /// <summary>
         /// Gets the file by name.
         /// </summary>
         /// <param name="filename">Filename to search for.</param>
         /// <returns></returns>
-        public ManagedFile GetFile(string filename) 
+        public ManagedFile GetFile(string filename)
         {
             // Loop through the files in this ManagedDirectory.
-            foreach (ManagedFile file in Files)
+            foreach (var file in Files)
             {
                 // Check if the filename is correct
-                if (file.FullName == filename || file.Name == filename)
+                if (file.FileInfo.FullName == filename || file.FileInfo.Name == filename)
                 {
                     // Return the file
                     return file;
@@ -76,17 +69,17 @@ namespace DirtBot.DataBase.FileManagement
         /// </summary>
         /// <param name="directoryName">Name of the subdirectory.</param>
         /// <returns></returns>
-        public ManagedDirectory GetDirectory(string directoryName) 
+        public ManagedDirectory GetDirectory(string directoryName)
         {
-            //return new ManagedDirectory(null, null, null);
             foreach (ManagedDirectory directory in Directories)
             {
-                if (directory.DirectoryInfo.Name == directoryName || directory.DirectoryInfo.FullName == directoryName) 
+                if (directory.DirectoryInfo.Name == directoryName || directory.DirectoryInfo.FullName == directoryName)
                 {
                     return directory;
                 }
             }
 
+            // Directory not found!
             return new ManagedDirectory(directoryName, null, null);
         }
 
@@ -95,11 +88,11 @@ namespace DirtBot.DataBase.FileManagement
         /// </summary>
         /// <param name="filename">Filename to search for.</param>
         /// <returns></returns>
-        public int IndexOf(string filename) 
+        public int IndexOf(string filename)
         {
             for (int i = 0; i < Files.Length; i++)
             {
-                if (Files[i].Name == filename || Files[i].FullName == filename) 
+                if (Files[i].FileInfo.Name == filename || Files[i].FileInfo.FullName == filename)
                 {
                     return i;
                 }
@@ -111,35 +104,37 @@ namespace DirtBot.DataBase.FileManagement
         /// <summary>
         /// Reloads this directory.
         /// </summary>
-        public void Refresh() 
+        public void Refresh()
         {
-            this = FileManager.LoadDirectory(DirectoryInfo.FullName);
+            ManagedDirectory refreshed = FileManager.LoadDirectory(DirectoryInfo.FullName);
+            Files = refreshed.Files;
+            Directories = refreshed.Directories;
+            DirectoryInfo = refreshed.DirectoryInfo;
         }
 
         /// <summary>
         /// Deletes the file with the name.
         /// </summary>
         /// <param name="filename">File that will be removed.</param>
-        public void DeleteFile(string filename) 
+        public void DeleteFile(string filename)
         {
-            this[filename].Delete();
-            this[filename].Dispose();
+            GetFile(filename).Delete();
             Refresh();
         }
 
         /// <summary>
         /// Deletes this directory and all the contents of it.
         /// </summary>
-        public void DeleteDirectory() 
+        public void DeleteDirectory()
         {
             Refresh();
 
-            foreach (ManagedFile file in Files)
+            foreach (var file in Files)
             {
-                DeleteFile(file.FullName);
+                DeleteFile(file.FileInfo.FullName);
             }
 
-            foreach (ManagedDirectory subDirectory in Directories)
+            foreach (var subDirectory in Directories)
             {
                 subDirectory.DeleteDirectory();
             }
@@ -151,7 +146,7 @@ namespace DirtBot.DataBase.FileManagement
         /// Creates a file to this directory
         /// </summary>
         /// <param name="filename"></param>
-        public void AddFile(string filename) 
+        public void AddFile(string filename)
         {
             StreamWriter writer = new StreamWriter($"{DirectoryInfo.FullName}/{filename}");
             writer.Close();
@@ -163,7 +158,7 @@ namespace DirtBot.DataBase.FileManagement
         /// Creates a subdirectory to this directory
         /// </summary>
         /// <param name="name"></param>
-        public void CreateSubdirectory(string name) 
+        public void CreateSubdirectory(string name)
         {
             DirectoryInfo.CreateSubdirectory(name);
         }
