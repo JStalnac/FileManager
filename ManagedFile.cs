@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace DirtBot.Database.FileManagement
 {
@@ -178,14 +179,52 @@ namespace DirtBot.Database.FileManagement
         /// <summary>
         /// Creates a new file, writes the specified string to the file, and closes the file. If the target file already exists, it is overwritten. Tries to do it retries times.
         /// </summary>
-        /// <param name="contents">The new contents</param>
-        /// <param name="retries">How many times should be retried</param>
-        public void WriteAllText(string contents, int retries)
+        /// <param name="contents"></param>
+        /// <param name="retries"></param>
+        public void WriteAllText(string contents, int retries = 70)
         {
             RepeatTimes(() =>
             {
                 File.WriteAllText(FileName, contents);
                 return 1;
+            }, times: retries);
+        }
+        /// <summary>
+        /// Creates a new file, writes the specified string to the file using the specified encoding, and closes the file. If the target file already exists, it is overwritten. Tries to do it retries times.
+        /// </summary>
+        /// <param name="contents"></param>
+        /// <param name="retries"></param>
+        public void WriteAllText(string contents, Encoding encoding, int retries = 70)
+        {
+            RepeatTimes(() =>
+            {
+                File.WriteAllText(FileName, contents, encoding);
+                return 1;
+            }, times: retries);
+        }
+
+        /// <summary>
+        /// Asynchronously creates a new file, writes the specified string to the file, and closes the file. If the target file already exists, it is overwritten. Tries to do it retries times.
+        /// </summary>
+        /// <param name="contents"></param>
+        /// <param name="retries"></param>
+        public async Task WriteAllTextAsync(string contents, int retries = 70)
+        {
+            await RepeatTimes(async () =>
+            {
+                await File.WriteAllTextAsync(FileName, contents);
+            }, times: retries);
+        }
+        /// <summary>
+        /// Asynchronously creates a new file, writes the specified string to the file using the specified encoding, and closes the file. If the target file already exists, it is overwritten. Tries to do it retries times.
+        /// </summary>
+        /// <param name="contents"></param>
+        /// <param name="retries"></param>
+        public async Task WriteAllTextAsync(string contents, Encoding encoding, int retries = 70)
+        {
+            await RepeatTimes(async () =>
+            {
+                await File.WriteAllTextAsync(FileName, contents, encoding);
             }, times: retries);
         }
 
@@ -194,12 +233,50 @@ namespace DirtBot.Database.FileManagement
         /// </summary>
         /// <param name="contents"></param>
         /// <param name="retries"></param>
-        public void AppendAllText(string contents, int retries)
+        public void AppendAllText(string contents, int retries = 50)
         {
             RepeatTimes(() =>
             {
                 File.AppendAllText(FileName, contents);
                 return 1;
+            }, times: retries);
+        }
+        /// <summary>
+        /// Opens the file, appends the specified string to the file using the specified encoding, and then closes it. If the file does not exist, this method creates the file, writes writes the specified string to the file, then closes the file. Tries to do it retries times.
+        /// </summary>
+        /// <param name="contents"></param>
+        /// <param name="retries"></param>
+        public void AppendAllText(string contents, Encoding encoding, int retries = 50)
+        {
+            RepeatTimes(() =>
+            {
+                File.AppendAllText(FileName, contents, encoding);
+                return 1;
+            }, times: retries);
+        }
+
+        /// <summary>
+        /// Asynchronously opens the file, appends the specified string to the file, and then closes it. If the file does not exist, this method creates the file, writes writes the specified string to the file, then closes the file. Tries to do it retries times.
+        /// </summary>
+        /// <param name="contents"></param>
+        /// <param name="retries"></param>
+        public async Task AppendAllTextAsync(string contents, int retries = 50)
+        {
+            await RepeatTimes(async () =>
+            {
+                await File.AppendAllTextAsync(FileName, contents);
+            }, times: retries);
+        }
+        /// <summary>
+        /// Asynchronously opens the file, appends the specified string to the file using the specified encoding, and then closes it. If the file does not exist, this method creates the file, writes writes the specified string to the file, then closes the file. Tries to do it retries times.
+        /// </summary>
+        /// <param name="contents"></param>
+        /// <param name="retries"></param>
+        public async Task AppendAllTextAsync(string contents, Encoding encoding, int retries = 50)
+        {
+            await RepeatTimes(async () =>
+            {
+                await File.AppendAllTextAsync(FileName, contents, encoding);
             }, times: retries);
         }
 
@@ -208,15 +285,52 @@ namespace DirtBot.Database.FileManagement
         /// </summary>
         /// <param name="retries"></param>
         /// <returns></returns>
-        public string ReadAllText(int retries)
+        public string ReadAllText(int retries = 30)
         {
             return RepeatTimes(() =>
             {
                 return File.ReadAllText(FileName);
             }, times: retries);
         }
+        /// <summary>
+        /// Opens the file, reads all the text in the file with the specified encoding, and then closes the file. Tries to do it retries times.
+        /// </summary>
+        /// <param name="retries"></param>
+        /// <returns></returns>
+        public string ReadAllText(Encoding encoding, int retries = 30)
+        {
+            return RepeatTimes(() =>
+            {
+                return File.ReadAllText(FileName, encoding);
+            }, times: retries);
+        }
 
-        private TResult RepeatTimes<TResult>(Func<TResult> func, int times = 50, int sleep = 50)
+        /// <summary>
+        /// Asynchronously opens the file, reads all the text in the file, and then closes the file. Tries to do it retries times.
+        /// </summary>
+        /// <param name="retries"></param>
+        /// <returns></returns>
+        public async Task<string> ReadAllTextAsync(int retries = 30)
+        {
+            return await RepeatTimes(async () =>
+            {
+                return await File.ReadAllTextAsync(FileName);
+            }, times: retries);
+        }
+        /// <summary>
+        /// Asynchronously opens the file, reads all the text in the file with the specified encoding, and then closes the file. Tries to do it retries times.
+        /// </summary>
+        /// <param name="retries"></param>
+        /// <returns></returns>
+        public async Task<string> ReadAllTextAsync(Encoding encoding, int retries = 30)
+        {
+            return await RepeatTimes(async () =>
+            {
+                return await File.ReadAllTextAsync(FileName, encoding);
+            }, times: retries);
+        }
+
+        private TResult RepeatTimes<TResult>(Func<TResult> func, int times, int sleep = 50)
         {
             int i = 0;
             Exception ex;
